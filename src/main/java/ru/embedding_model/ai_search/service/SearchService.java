@@ -6,6 +6,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
+import ru.embedding_model.ai_search.dto.OsResponseDto;
 
 @Service
 @AllArgsConstructor
@@ -23,13 +24,31 @@ public class SearchService {
 
     public String llmSearch(final String query) {
         final SearchRequest searchRequest = getRequest(query);
-        final List<Document> chunks = vectorStore.similaritySearch(searchRequest);
+        final OsResponseDto osResponse = similaritySearch(searchRequest);
+        if (osResponse.isHasError()) {
+            return osResponse.getErrorMessage();
+        }
+        final List<Document> chunks = osResponse.getDocuments();
         return ollamaService.search(chunks, query);
     }
 
-    public List<Document> search(final String query) {
+    public OsResponseDto search(final String query) {
         final SearchRequest searchRequest = getRequest(query);
-        return vectorStore.similaritySearch(searchRequest);
+        return similaritySearch(searchRequest);
+    }
+
+    private OsResponseDto similaritySearch(final SearchRequest request) {
+        try {
+            final List<Document> chunks = vectorStore.similaritySearch(request);
+            final OsResponseDto response = new OsResponseDto();
+            response.setDocuments(chunks);
+            return response;
+        } catch (final RuntimeException e) {
+            final OsResponseDto response = new OsResponseDto();
+            response.setErrorMessage(String.format("error calling open search: %s", e.getMessage()));
+            response.setHasError(true);
+            return response;
+        }
     }
 
 }

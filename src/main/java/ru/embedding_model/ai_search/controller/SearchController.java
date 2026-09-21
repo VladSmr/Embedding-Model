@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.embedding_model.ai_search.dto.OsResponseDto;
 import ru.embedding_model.ai_search.service.SearchService;
 
 @RestController
@@ -26,12 +27,14 @@ public class SearchController {
 
     @GetMapping("/query")
     public ResponseEntity<List<Map<String, String>>> search(@RequestParam final String q) {
-
-        var docs = service.search(q);
+        final OsResponseDto response = service.search(q);
+        if (response.isHasError()) {
+            return ResponseEntity.internalServerError().body(List.of(Map.of("error", response.getErrorMessage())));
+        }
+        var docs = response.getDocuments();
         var result = docs.stream()
                          .filter(Objects::nonNull)
-                         .map(doc ->
-                                      Map.of("text", doc.getText(), "score", String.valueOf(doc.getScore())))
+                         .map(doc -> Map.of("text", doc.getText(), "score", String.valueOf(doc.getScore())))
                          .toList();
 
         return ResponseEntity.ok(result);
