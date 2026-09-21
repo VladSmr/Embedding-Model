@@ -1,4 +1,4 @@
-package ru.embedding_model.controller;
+package ru.embedding_model.ai_embedding.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.embedding_model.dto.CosineDto;
-import ru.embedding_model.dto.EmbeddingDto;
-import ru.embedding_model.service.CosineService;
-import ru.embedding_model.service.VectorService;
+import ru.embedding_model.ai_embedding.dto.CosineDto;
+import ru.embedding_model.ai_embedding.dto.EmbeddingDto;
+import ru.embedding_model.ai_embedding.service.CosineService;
+import ru.embedding_model.ai_embedding.service.VectorService;
 
 @RestController
-@RequestMapping("/todo")
+@RequestMapping("/embedding")
 @AllArgsConstructor
 public class EmbeddingsController {
 

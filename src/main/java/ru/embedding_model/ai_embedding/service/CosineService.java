@@ -1,10 +1,10 @@
-package ru.embedding_model.service;
+package ru.embedding_model.ai_embedding.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import ru.embedding_model.dto.CosineDto;
+import ru.embedding_model.ai_embedding.dto.CosineDto;
 
 @Service
 @AllArgsConstructor

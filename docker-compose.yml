@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8083:8083"
+    depends_on: # <- сначала деплоит постгрес, потом приложение
+      postgres:
+        condition: service_healthy # <- Ждёт пока healthcheck вернёт успех. Postgres уже полностью готов принимать соединения
+    # service_started - Ждёт пока контейнер стартует (процесс запущен). Не ждёт готовности.
+    # service_completed_successfully - Ждёт пока контейнер завершится с кодом 0. Для разовых задач. Результат: например, контейнер с миграцией БД — запустился, сделал миграции, вышел → приложение стартует.
+
+    environment:
+      - spring.ai.ollama.base-url=http://host.docker.internal:11434
+      - server.port=8083
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d mydb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    environment:
+      - DISABLE_SECURITY_PLUGIN=true #(для dev)
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx1024m
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=myStrongPassword123!
+    volumes:
+      - opensearch_data:/var/lib/opensearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail http://localhost:9200/_cluster/health || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  opensearch_data:
