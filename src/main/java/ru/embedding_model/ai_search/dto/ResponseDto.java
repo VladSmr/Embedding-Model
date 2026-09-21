@@ -9,6 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ResponseDto {
 
+    private int chunks;
     private int status;
 
 }

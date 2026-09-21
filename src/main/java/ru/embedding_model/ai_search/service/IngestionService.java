@@ -7,6 +7,7 @@ import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 @Service
 @AllArgsConstructor
@@ -89,10 +90,14 @@ public class IngestionService {
     // В OpenSearch ничего не попадёт, /doc отдаст 200 OK, и ты узнаешь об этом только когда поиск вернёт пустоту.
     private final VectorStore vectorStore;
 
-    public void ingest(final String text) {
+    public int ingest(final String text) {
         final Document document = new Document(text);
         final List<Document> chunks = textSplitter.apply(List.of(document));
+        if (CollectionUtils.isEmpty(chunks)) {
+            throw new IllegalArgumentException("text produced no chunks (too short or below minChunkLengthToEmbed)");
+        }
         vectorStore.add(chunks);
+        return chunks.size();
     }
 
 }

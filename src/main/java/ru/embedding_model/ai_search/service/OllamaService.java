@@ -11,6 +11,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import ru.embedding_model.common.exceptions.LlmUnavailableException;
 
 @Service
 @AllArgsConstructor
@@ -23,7 +24,7 @@ public class OllamaService {
         try {
             response = chatModel.call(prompt);
         } catch (final RuntimeException e) {
-            return String.format("error calling ollama: %s", e.getMessage());
+            throw new LlmUnavailableException(String.format("error calling ollama: %s", e.getMessage()));
         }
         if (response.getResult() == null) {
             return "Chat response is empty. Something went wrong";

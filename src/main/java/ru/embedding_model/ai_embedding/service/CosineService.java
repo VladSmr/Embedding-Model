@@ -13,7 +13,7 @@ public class CosineService {
     private final EmbeddingModel embeddingModel;
 
     public CosineDto calculate(final CosineDto word) {
-        final CosineDto cosine = validateInputDate(word);
+        final CosineDto cosine = validateInputData(word);
 
         if (StringUtils.hasText(cosine.getError())) {
             return cosine;
@@ -54,7 +54,7 @@ public class CosineService {
 
     }
 
-    private CosineDto validateInputDate(final CosineDto cosine) {
+    private CosineDto validateInputData(final CosineDto cosine) {
         if (cosine == null) {
             final CosineDto result = new CosineDto();
             result.setError("invalid args");

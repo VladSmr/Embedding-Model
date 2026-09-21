@@ -19,8 +19,8 @@ public class IngestionController {
 
     @PostMapping("/doc")
     public ResponseEntity<ResponseDto> ingest(@RequestBody final DocumentDto document) {
-        service.ingest(document.getText());
-        return ResponseEntity.ok().body(new ResponseDto(200));
+        final int chunks = service.ingest(document.getText());
+        return ResponseEntity.ok().body(new ResponseDto(chunks, 200));
     }
 
 }

@@ -7,6 +7,7 @@ import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBui
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.opensearch.OpenSearchVectorStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,10 +15,10 @@ import org.springframework.context.annotation.Configuration;
 public class OpenSearchConfig {
 
     @Bean
-    public OpenSearchClient openSearchClient() {
-        HttpHost host = new HttpHost("http", "opensearch", 9200); // docker
-        //HttpHost host = new HttpHost("http", "localhost", 9200); // local deploy
-        OpenSearchTransport transport = ApacheHttpClient5TransportBuilder.builder(host).build();
+    public OpenSearchClient openSearchClient(@Value("${opensearch.host}") final String host,
+                                             @Value("${opensearch.port}") final String port) {
+        final HttpHost httpHost = new HttpHost("http", host, Integer.parseInt(port));
+        OpenSearchTransport transport = ApacheHttpClient5TransportBuilder.builder(httpHost).build();
         return new OpenSearchClient(transport);
     }
 

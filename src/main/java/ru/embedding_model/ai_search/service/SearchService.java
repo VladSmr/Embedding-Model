@@ -6,7 +6,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
-import ru.embedding_model.ai_search.dto.OsResponseDto;
+import ru.embedding_model.common.exceptions.OpenSearchUnavailableException;
 
 @Service
 @AllArgsConstructor
@@ -19,35 +19,26 @@ public class SearchService {
         return SearchRequest.builder()
                             .query(query)
                             .topK(3) // топ 3 чанка
+                            .similarityThreshold(0.50) // мин похожесть
                             .build();
     }
 
     public String llmSearch(final String query) {
         final SearchRequest searchRequest = getRequest(query);
-        final OsResponseDto osResponse = similaritySearch(searchRequest);
-        if (osResponse.isHasError()) {
-            return osResponse.getErrorMessage();
-        }
-        final List<Document> chunks = osResponse.getDocuments();
+        final List<Document> chunks = similaritySearch(searchRequest);
         return ollamaService.search(chunks, query);
     }
 
-    public OsResponseDto search(final String query) {
+    public List<Document> search(final String query) {
         final SearchRequest searchRequest = getRequest(query);
         return similaritySearch(searchRequest);
     }
 
-    private OsResponseDto similaritySearch(final SearchRequest request) {
+    private List<Document> similaritySearch(final SearchRequest request) {
         try {
-            final List<Document> chunks = vectorStore.similaritySearch(request);
-            final OsResponseDto response = new OsResponseDto();
-            response.setDocuments(chunks);
-            return response;
+            return vectorStore.similaritySearch(request);
         } catch (final RuntimeException e) {
-            final OsResponseDto response = new OsResponseDto();
-            response.setErrorMessage(String.format("error calling open search: %s", e.getMessage()));
-            response.setHasError(true);
-            return response;
+            throw new OpenSearchUnavailableException(String.format("error calling open search: %s", e.getMessage()));
         }
     }
 
