@@ -7,11 +7,15 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8083:8083"
-    depends_on: # <- сначала деплоит постгрес, потом приложение
-      postgres:
-        condition: service_healthy # <- Ждёт пока healthcheck вернёт успех. Postgres уже полностью готов принимать соединения
-    # service_started - Ждёт пока контейнер стартует (процесс запущен). Не ждёт готовности.
-    # service_completed_successfully - Ждёт пока контейнер завершится с кодом 0. Для разовых задач. Результат: например, контейнер с миграцией БД — запустился, сделал миграции, вышел → приложение стартует.
+
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
+    # service_healthy <- waits until the healthcheck passes; Postgres is fully ready to accept connections
+    # service_started - waits until the container starts (process is running). Does not wait for readiness.
+    # service_completed_successfully - waits until the container exits with code 0. For one-shot tasks, ->
+    # -> e.g. a DB migration container that runs, applies migrations, exits -> then the app starts
 
     environment:
       - spring.ai.ollama.base-url=http://host.docker.internal:11434
@@ -36,7 +40,7 @@ services:
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     environment:
-      - DISABLE_SECURITY_PLUGIN=true #(для dev)
+      - DISABLE_SECURITY_PLUGIN=true # dev only
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx1024m
       - discovery.type=single-node
       - bootstrap.memory_lock=true
